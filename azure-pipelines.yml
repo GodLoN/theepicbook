@@ -104,6 +104,22 @@ steps:
     displayName: 'Prepare SSH Key and Ansible Inventory'
 
   - bash: |
+      echo "===== GENERATED INVENTORY ====="
+      cat ansible/inventory/hosts.ini
+
+      echo
+      echo "===== SSH FILES ====="
+      ls -la "$(Pipeline.Workspace)/.ssh"
+
+      echo
+      echo "===== TEST FRONTEND THROUGH EXPLICIT KEY ====="
+      ssh -vvv \
+      -o IdentitiesOnly=yes \
+      -i "$(Pipeline.Workspace)/.ssh/id_ed25519" \
+      azureadmin@20.57.152.51 "hostname"
+    displayName: 'Debug SSH Key and Inventory'
+
+  - bash: |
       set -euo pipefail
 
       source "$(Pipeline.Workspace)/ansible-venv/bin/activate"

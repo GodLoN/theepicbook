@@ -90,7 +90,7 @@ steps:
       ansible_ssh_private_key_file=__KEY_PATH__
 
       [backend:vars]
-      ansible_ssh_common_args=-o ProxyJump=azureadmin@20.57.152.51
+      ansible_ssh_common_args=-o ProxyJump="ssh -i __KEY_PATH__ -o IdentitiesOnly=yes azureadmin@20.57.152.51"
       INVENTORY
 
       sed -i \

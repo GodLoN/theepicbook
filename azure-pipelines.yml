@@ -26,9 +26,12 @@ steps:
 
       echo
       echo "===== INSTALL ANSIBLE ====="
-      python3 -m pip install --user ansible-core
 
-      export PATH="$HOME/.local/bin:$PATH"
+      python3 -m venv "$(Pipeline.Workspace)/ansible-venv"
+      source "$(Pipeline.Workspace)/ansible-venv/bin/activate"
+
+      python -m pip install --upgrade pip
+      python -m pip install ansible-core
 
       ansible --version
 
@@ -88,7 +91,7 @@ steps:
   - bash: |
       set -euo pipefail
 
-      export PATH="$HOME/.local/bin:$PATH"
+      source "$(Pipeline.Workspace)/ansible-venv/bin/activate"
       export ANSIBLE_CONFIG="$PWD/ansible/ansible.cfg"
 
       echo "===== VERIFY ANSIBLE CONNECTIVITY ====="
@@ -99,7 +102,7 @@ steps:
   - bash: |
       set -euo pipefail
 
-      export PATH="$HOME/.local/bin:$PATH"
+      source "$(Pipeline.Workspace)/ansible-venv/bin/activate"
       export ANSIBLE_CONFIG="$PWD/ansible/ansible.cfg"
 
       echo "===== PREPARE DEPLOYMENT VARIABLES ====="

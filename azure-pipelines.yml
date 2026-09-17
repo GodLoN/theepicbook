@@ -9,7 +9,7 @@ pool:
   name: SelfHostedPool
 
 variables:
-  sshPrivateKeySecureFile: 'epicbook-ssh-private-key'
+  sshPrivateKeySecureFile: 'epicbook-devops-key'
 
 steps:
   - checkout: self
@@ -46,11 +46,24 @@ steps:
     inputs:
       secureFile: '$(sshPrivateKeySecureFile)'
 
-  - task: InstallSSHKey@0
-    displayName: 'Install SSH Private Key'
-    inputs:
-      knownHostsEntry: '20.57.152.51'
-      sshKeySecureFile: '$(sshPrivateKeySecureFile)'
+
+  - bash: |
+      set -euo pipefail
+
+      echo "===== PREPARE SSH KEY ====="
+
+      mkdir -p "$(Pipeline.Workspace)/.ssh"
+
+      cp "$(sshPrivateKey.secureFilePath)" \
+         "$(Pipeline.Workspace)/.ssh/id_ed25519"
+
+      chmod 600 "$(Pipeline.Workspace)/.ssh/id_ed25519"
+
+      echo "SSH key prepared."
+
+    displayName: 'Prepare SSH Key'
+
+
 
   - bash: |
       echo "===== BUILD AGENT IP ====="

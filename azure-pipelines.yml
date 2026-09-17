@@ -63,6 +63,8 @@ steps:
       echo
       echo "===== PREPARE ANSIBLE INVENTORY ====="
 
+      mkdir -p ansible/inventory
+
       cat > ansible/inventory/hosts.ini <<'INVENTORY'
       [frontend]
       frontend01 ansible_host=20.57.152.51

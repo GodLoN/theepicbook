@@ -1,0 +1,17 @@
+---
+app_name: "theepicbook"
+app_directory: "/opt/theepicbook"
+app_user: "epicbook"
+app_group: "epicbook"
+
+app_port: 8080
+
+mysql_database: "bookstore"
+mysql_port: 3306
+mysql_ssl_mode: "REQUIRED"
+
+mysql_fqdn: ""
+mysql_admin_username: ""
+mysql_admin_password: ""
+
+backend_private_ip: ""

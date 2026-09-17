@@ -1,0 +1,7 @@
+---
+mysql_database: "bookstore"
+mysql_port: 3306
+mysql_ssl_mode: "REQUIRED"
+mysql_schema_file: "db/BuyTheBook_Schema.sql"
+mysql_author_seed_file: "db/author_seed.sql"
+mysql_book_seed_file: "db/books_seed.sql"

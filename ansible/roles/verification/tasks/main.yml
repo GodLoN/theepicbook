@@ -1,0 +1,27 @@
+---
+- name: Verify backend application port is reachable
+  ansible.builtin.wait_for:
+    host: "{{ backend_private_ip }}"
+    port: "{{ backend_port }}"
+    timeout: 30
+    state: started
+
+- name: Verify Azure MySQL port is reachable
+  ansible.builtin.wait_for:
+    host: "{{ mysql_fqdn }}"
+    port: "{{ mysql_port }}"
+    timeout: 30
+    state: started
+
+- name: Verify EpicBook backend responds locally
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ backend_port }}/"
+    method: GET
+    status_code: 200
+  when: inventory_hostname in groups['backend']
+
+- name: Report backend and database verification
+  ansible.builtin.debug:
+    msg:
+      - "Backend {{ backend_private_ip }}:{{ backend_port }} is reachable."
+      - "MySQL {{ mysql_fqdn }}:{{ mysql_port }} is reachable."

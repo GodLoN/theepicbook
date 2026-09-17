@@ -1,0 +1,12 @@
+[frontend]
+frontend01 ansible_host={{ app_public_ip }}
+
+[backend]
+backend01 ansible_host={{ backend_private_ip }}
+
+[all:vars]
+ansible_user={{ ansible_user }}
+ansible_ssh_private_key_file={{ ansible_ssh_private_key_file }}
+
+[backend:vars]
+ansible_ssh_common_args=-o ProxyJump={{ ansible_user }}@{{ app_public_ip }}

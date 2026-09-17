@@ -1,0 +1,145 @@
+---
+- name: Install MySQL client
+  ansible.builtin.apt:
+    name:
+      - mysql-client
+      - python3-pymysql
+    state: present
+    update_cache: true
+
+- name: Wait for Azure MySQL to become reachable
+  ansible.builtin.wait_for:
+    host: "{{ mysql_fqdn }}"
+    port: "{{ mysql_port }}"
+    timeout: 60
+    state: started
+
+- name: Create EpicBook database
+  ansible.mysql.mysql_db:
+    name: "{{ mysql_database }}"
+    state: present
+    login_host: "{{ mysql_fqdn }}"
+    login_port: "{{ mysql_port }}"
+    login_user: "{{ mysql_admin_username }}"
+    login_password: "{{ mysql_admin_password }}"
+    config_file: ""
+    ca_cert: "/etc/ssl/certs/ca-certificates.crt"
+    check_hostname: true
+  no_log: true
+
+- name: Check whether EpicBook database has been initialized
+  ansible.builtin.stat:
+    path: "/var/lib/epicbook/.db_initialized"
+  register: db_initialized
+
+- name: Create EpicBook database working directory
+  ansible.builtin.file:
+    path: /var/lib/epicbook
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  when: not db_initialized.stat.exists
+
+- name: Copy EpicBook schema to backend VM
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../db/BuyTheBook_Schema.sql"
+    dest: /var/lib/epicbook/BuyTheBook_Schema.sql
+    owner: root
+    group: root
+    mode: "0644"
+  when: not db_initialized.stat.exists
+
+- name: Copy EpicBook author seed to backend VM
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../db/author_seed.sql"
+    dest: /var/lib/epicbook/author_seed.sql
+    owner: root
+    group: root
+    mode: "0644"
+  when: not db_initialized.stat.exists
+
+- name: Copy EpicBook book seed to backend VM
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../db/books_seed.sql"
+    dest: /var/lib/epicbook/books_seed.sql
+    owner: root
+    group: root
+    mode: "0644"
+  when: not db_initialized.stat.exists
+
+- name: Load EpicBook schema
+  ansible.mysql.mysql_db:
+    name: "{{ mysql_database }}"
+    state: import
+    target: /var/lib/epicbook/BuyTheBook_Schema.sql
+    login_host: "{{ mysql_fqdn }}"
+    login_port: "{{ mysql_port }}"
+    login_user: "{{ mysql_admin_username }}"
+    login_password: "{{ mysql_admin_password }}"
+    config_file: ""
+    ca_cert: "/etc/ssl/certs/ca-certificates.crt"
+    check_hostname: true
+  no_log: true
+  when: not db_initialized.stat.exists
+
+- name: Load EpicBook authors
+  ansible.mysql.mysql_db:
+    name: "{{ mysql_database }}"
+    state: import
+    target: /var/lib/epicbook/author_seed.sql
+    login_host: "{{ mysql_fqdn }}"
+    login_port: "{{ mysql_port }}"
+    login_user: "{{ mysql_admin_username }}"
+    login_password: "{{ mysql_admin_password }}"
+    config_file: ""
+    ca_cert: "/etc/ssl/certs/ca-certificates.crt"
+    check_hostname: true
+  no_log: true
+  when: not db_initialized.stat.exists
+
+- name: Load EpicBook books
+  ansible.mysql.mysql_db:
+    name: "{{ mysql_database }}"
+    state: import
+    target: /var/lib/epicbook/books_seed.sql
+    login_host: "{{ mysql_fqdn }}"
+    login_port: "{{ mysql_port }}"
+    login_user: "{{ mysql_admin_username }}"
+    login_password: "{{ mysql_admin_password }}"
+    config_file: ""
+    ca_cert: "/etc/ssl/certs/ca-certificates.crt"
+    check_hostname: true
+  no_log: true
+  when: not db_initialized.stat.exists
+
+- name: Mark EpicBook database as initialized
+  ansible.builtin.file:
+    path: /var/lib/epicbook/.db_initialized
+    state: touch
+    owner: root
+    group: root
+    mode: "0600"
+  when: not db_initialized.stat.exists
+
+- name: Verify EpicBook database tables
+  ansible.mysql.mysql_query:
+    login_host: "{{ mysql_fqdn }}"
+    login_port: "{{ mysql_port }}"
+    login_user: "{{ mysql_admin_username }}"
+    login_password: "{{ mysql_admin_password }}"
+    login_db: "{{ mysql_database }}"
+    ca_cert: "/etc/ssl/certs/ca-certificates.crt"
+    check_hostname: true
+    query: "SHOW TABLES;"
+  register: epicbook_tables
+  no_log: true
+
+- name: Confirm EpicBook core tables exist
+  ansible.builtin.assert:
+    that:
+      - "'author' in (epicbook_tables.query_result[0] | map(attribute='Tables_in_' + mysql_database) | list)"
+      - "'book' in (epicbook_tables.query_result[0] | map(attribute='Tables_in_' + mysql_database) | list)"
+      - "'cart' in (epicbook_tables.query_result[0] | map(attribute='Tables_in_' + mysql_database) | list)"
+    fail_msg: "EpicBook core database tables were not found."
+    success_msg: "EpicBook core database tables verified."

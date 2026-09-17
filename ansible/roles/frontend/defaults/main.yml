@@ -1,0 +1,5 @@
+---
+frontend_port: 80
+backend_port: 8080
+backend_private_ip: ""
+app_name: "theepicbook"

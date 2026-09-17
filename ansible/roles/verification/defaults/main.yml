@@ -1,0 +1,6 @@
+---
+app_public_port: 80
+backend_private_ip: ""
+backend_port: 8080
+mysql_fqdn: ""
+mysql_port: 3306

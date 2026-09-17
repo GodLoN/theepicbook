@@ -1,2 +1,7 @@
 node_modules
 .DS_Store
+
+# Ansible runtime files
+ansible/inventory/hosts.ini
+ansible/vars/deploy.yml
+ansible/.vault_password

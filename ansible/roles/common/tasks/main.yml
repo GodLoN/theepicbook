@@ -1,0 +1,12 @@
+---
+- name: Install common application-server packages
+  ansible.builtin.apt:
+    name:
+      - git
+      - curl
+      - unzip
+      - python3
+      - python3-pip
+      - build-essential
+    state: present
+    update_cache: true

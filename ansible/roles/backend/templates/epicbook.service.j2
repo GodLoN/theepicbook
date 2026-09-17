@@ -1,0 +1,16 @@
+[Unit]
+Description=EpicBook Node.js Application
+After=network.target
+
+[Service]
+Type=simple
+User={{ app_user }}
+Group={{ app_group }}
+WorkingDirectory={{ app_directory }}
+EnvironmentFile={{ app_directory }}/.env
+ExecStart=/usr/bin/node {{ app_directory }}/server.js
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

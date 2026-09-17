@@ -1,0 +1,130 @@
+trigger:
+  branches:
+    include:
+      - main
+
+pr: none
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  sshPrivateKeySecureFile: 'epicbook-ssh-private-key'
+
+steps:
+  - checkout: self
+
+  - bash: |
+      set -euo pipefail
+
+      echo "===== SYSTEM ====="
+      uname -a
+
+      echo
+      echo "===== PYTHON ====="
+      python3 --version
+
+      echo
+      echo "===== INSTALL ANSIBLE ====="
+      python3 -m pip install --user ansible-core
+
+      export PATH="$HOME/.local/bin:$PATH"
+
+      ansible --version
+
+      echo
+      echo "===== INSTALL ANSIBLE COLLECTIONS ====="
+      ansible-galaxy collection install -r ansible/requirements.yml
+    displayName: 'Install Ansible and Dependencies'
+
+  - task: DownloadSecureFile@1
+    name: sshPrivateKey
+    displayName: 'Download SSH Private Key'
+    inputs:
+      secureFile: '$(sshPrivateKeySecureFile)'
+
+  - bash: |
+      set -euo pipefail
+
+      echo "===== PREPARE SSH KEY ====="
+
+      mkdir -p "$(Pipeline.Workspace)/.ssh"
+
+      cp "$(sshPrivateKey.secureFilePath)" \
+         "$(Pipeline.Workspace)/.ssh/id_ed25519"
+
+      chmod 600 "$(Pipeline.Workspace)/.ssh/id_ed25519"
+
+      echo "SSH private key prepared."
+
+      echo
+      echo "===== PREPARE ANSIBLE INVENTORY ====="
+
+      cat > ansible/inventory/hosts.ini <<'INVENTORY'
+      [frontend]
+      frontend01 ansible_host=20.57.152.51
+
+      [backend]
+      backend01 ansible_host=10.10.2.4
+
+      [all:vars]
+      ansible_user=azureadmin
+      ansible_ssh_private_key_file=__KEY_PATH__
+
+      [backend:vars]
+      ansible_ssh_common_args=-o ProxyJump=azureadmin@20.57.152.51
+      INVENTORY
+
+      sed -i \
+        "s|__KEY_PATH__|$(Pipeline.Workspace)/.ssh/id_ed25519|" \
+        ansible/inventory/hosts.ini
+
+      echo
+      echo "===== INVENTORY ====="
+      cat ansible/inventory/hosts.ini
+
+    displayName: 'Prepare SSH Key and Ansible Inventory'
+
+  - bash: |
+      set -euo pipefail
+
+      export PATH="$HOME/.local/bin:$PATH"
+      export ANSIBLE_CONFIG="$PWD/ansible/ansible.cfg"
+
+      echo "===== VERIFY ANSIBLE CONNECTIVITY ====="
+
+      ansible all -m ping
+    displayName: 'Verify Ansible Connectivity'
+
+  - bash: |
+      set -euo pipefail
+
+      export PATH="$HOME/.local/bin:$PATH"
+      export ANSIBLE_CONFIG="$PWD/ansible/ansible.cfg"
+
+      echo "===== PREPARE DEPLOYMENT VARIABLES ====="
+
+      mkdir -p ansible/vars
+
+      cat > ansible/vars/deploy.yml <<'DEPLOY'
+      ---
+      app_public_ip: "20.57.152.51"
+      backend_private_ip: "10.10.2.4"
+      mysql_fqdn: "mysql-epicbook.mysql.database.azure.com"
+
+      mysql_admin_username: "$(EPICBOOK_MYSQL_USERNAME)"
+      mysql_admin_password: "{{ lookup('ansible.builtin.env', 'EPICBOOK_MYSQL_PASSWORD') }}"
+      DEPLOY
+
+      chmod 600 ansible/vars/deploy.yml
+
+      echo "Deployment variables prepared."
+      echo "MySQL password is supplied through a protected pipeline variable."
+
+      echo
+      echo "===== RUN ANSIBLE PLAYBOOK ====="
+
+      ansible-playbook ansible/site.yml
+    env:
+      EPICBOOK_MYSQL_PASSWORD: $(EPICBOOK_MYSQL_PASSWORD)
+    displayName: 'Deploy EpicBook with Ansible'

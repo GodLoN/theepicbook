@@ -1,0 +1,13 @@
+---
+node_major_version: "20"
+app_name: "theepicbook"
+app_directory: "/opt/theepicbook"
+app_user: "epicbook"
+app_group: "epicbook"
+app_port: 8080
+app_repository: "https://github.com/GodLoN/theepicbook.git"
+app_version: "main"
+mysql_database: "bookstore"
+mysql_fqdn: ""
+mysql_admin_username: ""
+mysql_admin_password: ""

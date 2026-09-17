@@ -109,7 +109,7 @@ steps:
 
       mkdir -p ansible/vars
 
-      cat > ansible/vars/deploy.yml <<'DEPLOY'
+      cat > ansible/vars/deploy.yml <<DEPLOY
       ---
       app_public_ip: "20.57.152.51"
       backend_private_ip: "10.10.2.4"

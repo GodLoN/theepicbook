@@ -6,7 +6,7 @@ trigger:
 pr: none
 
 pool:
-  vmImage: 'ubuntu-latest'
+  name: SelfHostedPool
 
 variables:
   sshPrivateKeySecureFile: 'epicbook-ssh-private-key'

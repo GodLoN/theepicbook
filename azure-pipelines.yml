@@ -74,9 +74,6 @@ steps:
       SSH_KEY_PASSPHRASE: $(SSH_KEY_PASSPHRASE)
 
     displayName: 'Prepare SSH Key'
-
-      echo
-
   - bash: |
       echo "===== BUILD AGENT IP ====="
       curl -s ifconfig.me

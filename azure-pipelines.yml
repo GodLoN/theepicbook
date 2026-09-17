@@ -61,6 +61,16 @@ steps:
       echo "SSH private key prepared."
 
       echo
+
+  - bash: |
+      echo "===== BUILD AGENT IP ====="
+      curl -s ifconfig.me
+      echo
+    displayName: 'Show Azure DevOps Agent IP'
+
+  - bash: |
+      set -euo pipefail
+
       echo "===== PREPARE ANSIBLE INVENTORY ====="
 
       mkdir -p ansible/inventory

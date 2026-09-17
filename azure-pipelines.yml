@@ -58,7 +58,22 @@ steps:
 
       chmod 600 "$(Pipeline.Workspace)/.ssh/id_ed25519"
 
-      echo "SSH private key prepared."
+      echo "Starting ssh-agent..."
+
+      eval "$(ssh-agent -s)"
+
+      ssh-add "$(Pipeline.Workspace)/.ssh/id_ed25519" <<< "$(SSH_KEY_PASSPHRASE)"
+
+      export SSH_AUTH_SOCK
+
+      ssh-add -l
+
+      echo "SSH key loaded successfully."
+
+    env:
+      SSH_KEY_PASSPHRASE: $(SSH_KEY_PASSPHRASE)
+
+    displayName: 'Prepare SSH Key'
 
       echo
 

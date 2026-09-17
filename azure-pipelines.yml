@@ -117,7 +117,7 @@ steps:
       backend_private_ip: "10.10.2.4"
       mysql_fqdn: "mysql-epicbook.mysql.database.azure.com"
 
-      mysql_admin_username: "$(EPICBOOK_MYSQL_USERNAME)"
+      mysql_admin_username: "{{ lookup('ansible.builtin.env', 'EPICBOOK_MYSQL_USERNAME') }}"
       mysql_admin_password: "{{ lookup('ansible.builtin.env', 'EPICBOOK_MYSQL_PASSWORD') }}"
       DEPLOY
 
@@ -131,5 +131,6 @@ steps:
 
       ansible-playbook ansible/site.yml
     env:
+      EPICBOOK_MYSQL_USERNAME: $(EPICBOOK_MYSQL_USERNAME)
       EPICBOOK_MYSQL_PASSWORD: $(EPICBOOK_MYSQL_PASSWORD)
     displayName: 'Deploy EpicBook with Ansible'

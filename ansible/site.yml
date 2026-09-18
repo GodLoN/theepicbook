@@ -1,6 +1,6 @@
 ---
 - name: Configure EpicBook backend
-  hosts: backend
+  hosts backend
   become: true
   vars_files:
     - vars/deploy.yml
